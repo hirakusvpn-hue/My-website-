@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DigiSurve — Fast QR Menus</title>
+    <meta name="description" content="Fast, photo-first QR menus for restaurants. Popular plan ₹1999.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: { blue: '#0B6FF2', accent: '#FF5A5F', dark: '#0f172a' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Hide scrollbar for category chips but allow scroll */
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Safe area for sticky bottom nav on iPhone */
+        body { padding-bottom: 80px; } 
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800 antialiased">
+
+    <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative border-x border-gray-100">
+        
+        <header class="flex items-center justify-between px-5 py-4 bg-white sticky top-0 z-30 border-b border-gray-100">
+            <div class="flex items-center gap-1 cursor-pointer" onclick="window.location.hash='#/'">
+                <span class="text-xl font-bold text-brand-blue tracking-tight">digi</span>
+                <span class="text-xl font-extrabold text-brand-accent tracking-tight">Surve</span>
+            </div>
+            <a href="#/demo" class="text-xs font-semibold bg-blue-50 text-brand-blue px-3 py-1.5 rounded-full">Scan Demo</a>
+        </header>
+
+        <main id="main" class="p-0"></main>
+
+        <div id="sticky-actions" class="fixed bottom-[70px] left-0 right-0 z-40 hidden justify-center px-4 max-w-md mx-auto pointer-events-none">
+            <div class="bg-white/90 backdrop-blur shadow-lg border border-gray-200 p-2 rounded-2xl flex gap-3 w-full pointer-events-auto">
+                <a id="btnCall" href="#" class="flex-1 bg-brand-blue text-white font-bold py-3 rounded-xl text-center shadow-lg shadow-blue-200 text-sm">Call Server</a>
+                <a id="btnBook" href="#" class="flex-1 bg-white text-brand-blue border border-blue-100 font-bold py-3 rounded-xl text-center text-sm">Book Table</a>
+            </div>
+        </div>
+
+        <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 pb-safe max-w-md mx-auto">
+            <div class="flex justify-around items-center h-16 text-[10px] font-medium text-gray-400">
+                <a href="#/" class="flex flex-col items-center justify-center w-full h-full hover:text-brand-blue active:text-brand-blue nav-link" data-link="/">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                    Home
+                </a>
+                <a href="#/menu" class="flex flex-col items-center justify-center w-full h-full hover:text-brand-blue active:text-brand-blue nav-link" data-link="menu">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    Menu
+                </a>
+                <a href="#/pricing" class="flex flex-col items-center justify-center w-full h-full hover:text-brand-blue active:text-brand-blue nav-link" data-link="pricing">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Plans
+                </a>
+                <a href="#/contact" class="flex flex-col items-center justify-center w-full h-full hover:text-brand-blue active:text-brand-blue nav-link" data-link="contact">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    Join
+                </a>
+            </div>
+        </nav>
+
+    </div>
+
+    <script>
+    /* --- DATA STORE --- */
+    const sampleData = {
+      restaurant: {
+        id: 'r001',
+        name: 'The Sample Kitchen',
+        phone: '+919876543210',
+        address: '123 Sample St, Indiranagar',
+        open_hours: '11:30 AM – 11:00 PM',
+        image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+      },
+      menu: [
+        {
+          category_id: 'c1',
+          name: 'Starters',
+          items: [
+            { id:'d1', name:'Aloo Tikki Chaat', price:120, description:'Crispy aloo tikkis topped with tangy chutneys & pomegranate.', images:['https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=400&q=80'], tags:['Veg'], spice:1 },
+            { id:'d2', name:'Paneer Tikka', price:240, description:'Smoky cottage cheese cubes marinated in tandoori spices.', images:['https://images.unsplash.com/photo-1567188040754-b82d80a64b7b?auto=format&fit=crop&w=400&q=80'], tags:['Veg'], spice:2 }
+          ]
+        },
+        {
+          category_id: 'c2',
+          name: 'Main Course',
+          items: [
+            { id:'d3', name:'Butter Chicken', price:320, description:'Classic buttery tomato gravy with tender chicken chunks.', images:['https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=400&q=80'], tags:['Non-Veg'], spice:2},
+            { id:'d4', name:'Dal Makhani', price:280, description:'Slow cooked black lentils with cream and butter.', images:['https://images.unsplash.com/photo-1585937421612-70a008356f36?auto=format&fit=crop&w=400&q=80'], tags:['Veg'], spice:1}
+          ]
+        },
+        {
+          category_id: 'c3',
+          name: 'Desserts',
+          items: [
+            { id:'d5', name:'Gulab Jamun', price:110, description:'Soft milk-solid dumplings dipped in rose sugar syrup.', images:['https://images.unsplash.com/photo-1589119908995-c6837fa14848?auto=format&fit=crop&w=400&q=80'], tags:['Veg'], spice:0}
+          ]
+        }
+      ]
+    };
+
+    /* --- ROUTER --- */
+    function navigate() {
+        const hash = location.hash || '#/';
+        const path = hash.slice(1).split('/')[0] || '/';
+        const main = document.getElementById('main');
+        
+        // Reset specific UI elements
+        document.getElementById('sticky-actions').classList.remove('flex');
+        document.getElementById('sticky-actions').classList.add('hidden');
+        
+        // Active Nav State
+        document.querySelectorAll('.nav-link').forEach(el => {
+            el.classList.remove('text-brand-blue');
+            if(el.dataset.link === path || (path === '' && el.dataset.link === '/')) el.classList.add('text-brand-blue');
+        });
+
+        if(path === '/' || path === '') renderHome(main);
+        else if(path === 'menu') renderMenu(main, sampleData);
+        else if(path === 'pricing') renderPricing(main);
+        else if(path === 'demo') renderDemo(main);
+        else if(path === 'contact') renderContact(main);
+        else if(path === 'faq') renderFAQ(main);
+        else if(path === 'terms') renderTerms(main);
+        else main.innerHTML = `<div class="p-8 text-center text-gray-500">Page not found</div>`;
+
+        window.scrollTo(0,0);
+    }
+
+    window.addEventListener('hashchange', navigate);
+    window.addEventListener('load', navigate);
+
+    /* --- RENDERERS --- */
+
+    function renderHome(container) {
+        container.innerHTML = `
+            <div class="fade-in">
+                <div class="px-5 py-8 bg-white text-center">
+                    <h1 class="text-3xl font-extrabold text-slate-900 leading-tight mb-3">
+                        Fast, photo-first <br><span class="text-brand-blue">QR Menus</span>
+                    </h1>
+                    <p class="text-slate-500 mb-6 text-sm leading-relaxed px-4">
+                        Delight diners with a lightning-fast menu experience. 
+                        Popular plan: <span class="font-bold text-slate-700">₹1999</span>.
+                    </p>
+                    <div class="flex gap-3 justify-center">
+                        <a href="#/demo" class="bg-brand-blue text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-blue-200">Scan Demo</a>
+                        <a href="#/pricing" class="bg-blue-50 text-brand-blue font-bold py-3 px-6 rounded-xl border border-blue-100">See Plans</a>
+                    </div>
+                </div>
+
+                <div class="px-5 py-6">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Plans</div>
+                    <div class="space-y-3">
+                        <div class="p-4 rounded-xl border border-gray-100 bg-white shadow-sm flex justify-between items-center">
+                            <div>
+                                <div class="font-bold text-slate-800">Basic Plan</div>
+                                <div class="text-xs text-slate-500">Simple list & contact info</div>
+                            </div>
+                            <div class="text-brand-blue font-bold">₹999</div>
+                        </div>
+                        <div class="p-4 rounded-xl border-2 border-brand-blue bg-blue-50/50 shadow-sm flex justify-between items-center relative overflow-hidden">
+                            <div class="absolute top-0 right-0 bg-brand-blue text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg">POPULAR</div>
+                            <div>
+                                <div class="font-bold text-slate-800">Standard Plan</div>
+                                <div class="text-xs text-slate-500">Photos, categories & edits</div>
+                            </div>
+                            <div class="text-brand-blue font-extrabold text-lg">₹1999</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-5 py-6 bg-white mb-20">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">How it works</div>
+                    <ol class="relative border-l border-gray-200 ml-2">                  
+                        <li class="mb-6 ml-6">
+                            <span class="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-4 ring-white">
+                                <span class="text-brand-blue font-bold text-xs">1</span>
+                            </span>
+                            <h3 class="font-bold text-slate-800 text-sm">Upload assets</h3>
+                            <p class="text-xs text-slate-500 mt-1">Fill the form and send us your photos.</p>
+                        </li>
+                        <li class="mb-6 ml-6">
+                            <span class="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-4 ring-white">
+                                <span class="text-brand-blue font-bold text-xs">2</span>
+                            </span>
+                            <h3 class="font-bold text-slate-800 text-sm">We build & review</h3>
+                            <p class="text-xs text-slate-500 mt-1">Get a staging link within 48 hours.</p>
+                        </li>
+                        <li class="ml-6">
+                            <span class="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -left-3 ring-4 ring-white">
+                                <span class="text-brand-blue font-bold text-xs">3</span>
+                            </span>
+                            <h3 class="font-bold text-slate-800 text-sm">Go Live</h3>
+                            <p class="text-xs text-slate-500 mt-1">We send print-ready QR files.</p>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderMenu(container, data) {
+        const { restaurant, menu } = data;
+        
+        container.innerHTML = `
+            <div class="bg-white min-h-screen pb-24 fade-in">
+                <div class="relative h-48 bg-gray-200">
+                    <img src="${restaurant.image}" class="w-full h-full object-cover brightness-75">
+                    <div class="absolute bottom-0 left-0 right-0 p-5 text-white bg-gradient-to-t from-black/80 to-transparent pt-12">
+                        <h2 class="text-2xl font-bold leading-tight">${restaurant.name}</h2>
+                        <div class="flex items-center text-xs opacity-90 mt-1 gap-2">
+                            <span>${restaurant.open_hours}</span> • <span>${restaurant.address.split(',')[0]}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sticky top-[60px] z-20 bg-white py-3 border-b border-gray-100 shadow-sm">
+                    <div class="flex gap-2 px-4 overflow-x-auto hide-scroll" id="menuChips">
+                        </div>
+                </div>
+
+                <div class="px-4 py-3 bg-gray-50">
+                    <input id="searchInput" type="text" placeholder="Search dishes..." class="w-full bg-white border border-gray-200 rounded-lg py-2.5 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 transition-all">
+                </div>
+
+                <div id="dishGrid" class="p-4 space-y-4">
+                    </div>
+            </div>
+        `;
+
+        // Update Sticky Actions
+        const actions = document.getElementById('sticky-actions');
+        actions.classList.remove('hidden');
+        actions.classList.add('flex');
+        document.getElementById('btnCall').href = `tel:${restaurant.phone}`;
+
+        // Render Logic
+        let activeCat = menu[0].category_id;
+        
+        const renderChips = () => {
+            const chipContainer = document.getElementById('menuChips');
+            chipContainer.innerHTML = menu.map(cat => `
+                <button onclick="switchCat('${cat.category_id}')" 
+                    class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-all ${activeCat === cat.category_id ? 'bg-brand-blue text-white shadow-md shadow-blue-200' : 'bg-gray-100 text-slate-600 border border-transparent'}">
+                    ${cat.name}
+                </button>
+            `).join('');
+        };
+
+        const renderDishes = (filter = '') => {
+            const grid = document.getElementById('dishGrid');
+            const cat = menu.find(c => c.category_id === activeCat);
+            if(!cat) return;
+            
+            const filtered = cat.items.filter(item => 
+                item.name.toLowerCase().includes(filter.toLowerCase()) || 
+                item.price.toString().includes(filter)
+            );
+
+            if(filtered.length === 0) {
+                grid.innerHTML = `<div class="text-center py-10 text-gray-400 text-sm">No items found</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(item => `
+                <div class="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm flex flex-col">
+                    <div class="h-40 w-full bg-gray-100 relative">
+                        <img src="${item.images[0]}" class="w-full h-full object-cover" loading="lazy">
+                        <div class="absolute top-2 right-2">
+                             ${item.tags.includes('Veg') ? 
+                                '<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded">VEG</span>' : 
+                                '<span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-1 rounded">NON-VEG</span>'}
+                        </div>
+                    </div>
+                    <div class="p-4 flex-1 flex flex-col">
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-bold text-slate-800 text-lg leading-tight">${item.name}</h3>
+                            <span class="font-extrabold text-brand-blue">₹${item.price}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-2">${item.description}</p>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        // Expose switcher globally
+        window.switchCat = (id) => { activeCat = id; renderChips(); renderDishes(document.getElementById('searchInput').value); };
+        
+        // Init
+        renderChips();
+        renderDishes();
+
+        // Search Listener
+        document.getElementById('searchInput').addEventListener('input', (e) => renderDishes(e.target.value));
+    }
+
+    function renderPricing(container) {
+        container.innerHTML = `
+            <div class="p-5 fade-in">
+                <h2 class="text-2xl font-bold mb-6">Simple Pricing</h2>
+                
+                <div class="space-y-4 mb-8">
+                    <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-lg">Basic</h3>
+                            <span class="font-bold text-xl">₹999</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-4">Perfect for small cafes with limited items.</p>
+                        <ul class="text-sm space-y-2 text-slate-600">
+                            <li class="flex gap-2">✓ <span class="text-slate-800">Gallery Style Menu</span></li>
+                            <li class="flex gap-2">✓ <span>Google Subdomain</span></li>
+                            <li class="flex gap-2">✓ <span>Contact & Location</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-slate-900 p-5 rounded-2xl shadow-xl text-white relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-brand-accent text-white text-xs font-bold px-3 py-1 rounded-bl-xl">RECOMMENDED</div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-lg">Popular</h3>
+                            <span class="font-bold text-xl text-brand-accent">₹1999</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-4">The complete professional experience.</p>
+                        <ul class="text-sm space-y-2 text-slate-300">
+                            <li class="flex gap-2 text-white">✓ Category-wise Navigation</li>
+                            <li class="flex gap-2 text-white">✓ Dish Descriptions & Tags</li>
+                            <li class="flex gap-2 text-white">✓ Search & Filter</li>
+                            <li class="flex gap-2 text-white">✓ 1 Month Free Edits (10)</li>
+                        </ul>
+                        <div class="mt-5">
+                            <a href="#/contact" class="block w-full bg-brand-blue text-center py-2.5 rounded-lg font-bold text-sm hover:bg-blue-600 transition">Get Started</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-xl mb-4">
+                    <h4 class="font-bold text-sm text-brand-blue mb-2">Add-ons</h4>
+                    <div class="flex justify-between text-sm text-slate-700 border-b border-blue-100 pb-2 mb-2">
+                        <span>Custom Domain Integration</span>
+                        <span class="font-bold">₹699</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-slate-700">
+                        <span>Edit Pack (12 updates)</span>
+                        <span class="font-bold">₹299/mo</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderContact(container) {
+        container.innerHTML = `
+            <div class="p-5 fade-in">
+                <h2 class="text-2xl font-bold mb-2">Get Started</h2>
+                <p class="text-sm text-slate-500 mb-6">Fill this form to launch your QR menu.</p>
+                
+                <form onsubmit="event.preventDefault(); alert('We have received your request. We will WhatsApp you shortly!');" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Restaurant Name</label>
+                        <input type="text" required class="w-full bg-white border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue/20 outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Owner Name</label>
+                            <input type="text" required class="w-full bg-white border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue/20 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Phone</label>
+                            <input type="tel" required class="w-full bg-white border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue/20 outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Plan</label>
+                        <select class="w-full bg-white border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue/20 outline-none">
+                            <option>Popular Plan (₹1999)</option>
+                            <option>Basic Plan (₹999)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Do you have a domain?</label>
+                        <input type="text" placeholder="e.g. No, or mydomain.com" class="w-full bg-white border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-brand-blue/20 outline-none">
+                    </div>
+                    
+                    <button class="w-full bg-brand-blue text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 mt-4">Submit Application</button>
+                    <p class="text-center text-xs text-slate-400 mt-4">We will contact you for photos & payment.</p>
+                </form>
+            </div>
+        `;
+    }
+
+    function renderDemo(container) {
+        container.innerHTML = `
+            <div class="p-5 text-center fade-in h-[80vh] flex flex-col justify-center items-center">
+                <h2 class="text-xl font-bold mb-4">Live Demo QR</h2>
+                <div class="bg-white p-4 rounded-2xl shadow-xl border border-gray-100 inline-block mb-6">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(location.origin + location.pathname + '#/menu')}" class="w-48 h-48 rounded-lg">
+                </div>
+                <p class="text-sm text-slate-500 mb-6 max-w-[240px]">Scan with your phone to see the mobile menu experience.</p>
+                <a href="#/menu" class="text-brand-blue font-bold text-sm">Or click here to open</a>
+            </div>
+        `;
+    }
+
+    function renderFAQ(container) { container.innerHTML = `<div class="p-5 fade-in"><h2 class="text-2xl font-bold mb-4">FAQ</h2><p>Content here...</p></div>`; }
+    function renderTerms(container) { container.innerHTML = `<div class="p-5 fade-in"><h2 class="text-2xl font-bold mb-4">Terms</h2><p>Content here...</p></div>`; }
+    </script>
+</body>
+</html>
